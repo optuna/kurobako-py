@@ -8,6 +8,7 @@ from kurobako.parameter import ContinuousParam
 from kurobako.parameter import ContinuousValue
 from kurobako.parameter import DiscreteParam
 from kurobako.parameter import Distribution
+from kurobako.parameter import ParamDomain
 from kurobako.solver import SolverCapabilities
 from kurobako.solver import SolverSpec
 
@@ -36,7 +37,8 @@ class OptunaSolver(object):
                 self._study.storage.get_trial(trial._trial_id).intermediate_values.keys())
             budget = Budget(consumption + 1, consumption=consumption)
 
-        params = [self._suggest(p, trial) for p in self._problem.params_domain]
+        params = ParamDomain.ask_independent_values(
+            self._problem.params_domain, lambda p: self._suggest(p, trial))
 
         self._runnings[trial.number] = trial
         return trial.number, params, budget

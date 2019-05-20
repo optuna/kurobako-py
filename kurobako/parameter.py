@@ -23,6 +23,23 @@ class Distribution(enum.Enum):
 
 class ParamDomain(object):
     @staticmethod
+    def ask_independent_values(params_domain, callback):
+        values = []
+        params = {}
+        for p in params_domain:
+            if isinstance(p, ConditionalParam):
+                if not p.condition.is_satisfied(params):
+                    values.append(ConditionalValue(None))
+                    continue
+                p = p.param
+
+            v = callback(p)
+            values.append(v)
+            params[p.name] = (p, v)
+
+        return values
+
+    @staticmethod
     def from_json(p):
         kind, data = list(p.items())[0]
         if kind == 'continuous':
@@ -36,8 +53,57 @@ class ParamDomain(object):
                                  high=data['range']['high'])
         elif kind == 'categorical':
             return CategoricalParam(name=data['name'], choices=data['choices'])
+        elif kind == 'conditional':
+            condition = Condition.from_json(data['condition'])
+            param = ParamDomain.from_json(data['param'])
+            return ConditionalParam(condition, param)
         else:
             raise NotImplementedError('{}'.format(p))
+
+
+class Condition(object):
+    @staticmethod
+    def from_json(o):
+        kind, data = list(o.items())[0]
+        if kind == 'member':
+            return ConditionMember(data['name'], data['choices'])
+        else:
+            raise NotImplementedError('{}'.format(o))
+
+
+class ConditionMember(object):
+    def __init__(self, operand_name, choices):
+        self.operand_name = operand_name
+        self.choices = choices
+
+    def to_json(self):
+        return {'member': {'name': self.operand_name, 'choices': self.choices}}
+
+    def is_satisfied(self, params):
+        if self.operand_name not in params:
+            return False
+
+        domain, value = params[self.operand_name]
+        category = domain.choices[value.index]
+        return category in self.choices
+
+
+class ConditionalParam(object):
+    def __init__(self, condition, param):
+        self.condition = condition
+        self.param = param
+
+    @property
+    def name(self):
+        return self.param.name
+
+    def to_json(self):
+        return {
+            'conditional': {
+                'condition': self.condition.to_json(),
+                'param': self.param.to_json()
+            }
+        }
 
 
 class ContinuousParam(object):
@@ -91,6 +157,14 @@ class ContinuousValue(object):
 
     def to_json(self):
         return {'continuous': self.value}
+
+
+class ConditionalValue(object):
+    def __init__(self, value):
+        self.value = value
+
+    def to_json(self):
+        return {'conditional': self.value}
 
 
 class DiscreteValue(object):

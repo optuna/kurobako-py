@@ -3,8 +3,10 @@ import queue
 import optuna
 
 from kurobako.budget import Budget
+from kurobako.parameter import CategoricalParam
 from kurobako.parameter import ContinuousParam
 from kurobako.parameter import ContinuousValue
+from kurobako.parameter import DiscreteParam
 from kurobako.parameter import Distribution
 from kurobako.solver import SolverCapabilities
 from kurobako.solver import SolverSpec
@@ -27,11 +29,14 @@ class OptunaSolver(object):
     def ask(self, id_hint):
         if self._waitings.empty():
             trial = self._create_new_trial()
+            budget = self._create_new_budget()
         else:
             trial = self._waitings.get()
+            consumption = max(
+                self._study.storage.get_trial(trial._trial_id).intermediate_values.keys())
+            budget = Budget(consumption + 1, consumption=consumption)
 
         params = [self._suggest(p, trial) for p in self._problem.params_domain]
-        budget = self._create_new_budget()
 
         self._runnings[trial.number] = trial
         return trial.number, params, budget
@@ -67,6 +72,12 @@ class OptunaSolver(object):
             else:
                 v = trial.suggest_loguniform(param.name, param.low, param.high)
                 return ContinuousValue(v)
+        elif isinstance(param, DiscreteParam):
+            v = trial.suggest_int(param.name, param.low, param.high)
+            return param.make_value(v)
+        elif isinstance(param, CategoricalParam):
+            v = trial.suggest_categorical(param.name, param.choices)
+            return param.make_value(v)
         else:
             raise NotImplementedError('{}'.format(param))
 

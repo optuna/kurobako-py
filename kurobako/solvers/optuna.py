@@ -87,7 +87,7 @@ class OptunaSolver(object):
         trial_id = self._study.storage.create_new_trial_id(self._study.study_id)
 
         relative_search_space, relative_params = self._study._sample_relative(trial_id)
-        return optuna.trial.Trial(self._study, trial_id, relative_params, relative_params)
+        return optuna.trial.Trial(self._study, trial_id, relative_search_space, relative_params)
 
     def _create_new_budget(self):
         return Budget(1)

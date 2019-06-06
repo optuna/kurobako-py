@@ -75,7 +75,7 @@ class OptunaSolver(object):
                 v = trial.suggest_loguniform(param.name, param.low, param.high)
                 return ContinuousValue(v)
         elif isinstance(param, DiscreteParam):
-            v = trial.suggest_int(param.name, param.low, param.high)
+            v = trial.suggest_int(param.name, param.low, param.high - 1)
             return param.make_value(v)
         elif isinstance(param, CategoricalParam):
             v = trial.suggest_categorical(param.name, param.choices)

@@ -14,8 +14,8 @@ from kurobako.solver import SolverSpec
 
 
 class OptunaSolver(object):
-    def __init__(self, problem, sampler=None, pruner=None):
-        self._study = optuna.create_study(sampler=sampler, pruner=pruner)
+    def __init__(self, problem, sampler=None, pruner=None, direction='minimize'):
+        self._study = optuna.create_study(sampler=sampler, pruner=pruner, direction=direction)
         self._problem = problem
         self._waitings = queue.Queue()
         self._runnings = {}
@@ -46,6 +46,8 @@ class OptunaSolver(object):
     def tell(self, obs_id, budget, values):
         assert len(values) == 1
         value = values[0]
+        if self._study.direction == optuna.structs.StudyDirection.MAXIMIZE:
+            value = -value
 
         trial = self._runnings[obs_id]
         del self._runnings[obs_id]

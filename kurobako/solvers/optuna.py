@@ -34,7 +34,7 @@ class OptunaSolver(object):
         else:
             trial = self._waitings.get()
             consumption = max(
-                self._study.storage.get_trial(trial._trial_id).intermediate_values.keys())
+                self._study._storage.get_trial(trial._trial_id).intermediate_values.keys())
             budget = Budget(consumption + 1, consumption=consumption)
 
         params = ParamDomain.ask_independent_values(
@@ -54,7 +54,7 @@ class OptunaSolver(object):
 
         if self._problem.is_completed(budget):
             trial.report(value)
-            self._study.storage.set_trial_state(trial._trial_id,
+            self._study._storage.set_trial_state(trial._trial_id,
                                                 optuna.structs.TrialState.COMPLETE)
             self._study._log_completed_trial(trial.number, value)
         else:
@@ -63,8 +63,8 @@ class OptunaSolver(object):
                 message = 'Pruned trial#{}: step={}, value={}'.format(
                     trial.number, budget.consumption, value)
                 self._study.logger.info(message)
-                self._study.storage.set_trial_state(trial._trial_id,
-                                                    optuna.structs.TrialState.PRUNED)
+                self._study._storage.set_trial_state(trial._trial_id,
+                                                     optuna.structs.TrialState.PRUNED)
             else:
                 self._waitings.put(trial)
 
@@ -86,7 +86,7 @@ class OptunaSolver(object):
             raise NotImplementedError('{}'.format(param))
 
     def _create_new_trial(self):
-        trial_id = self._study.storage.create_new_trial(self._study.study_id)
+        trial_id = self._study._storage.create_new_trial(self._study.study_id)
         return optuna.trial.Trial(self._study, trial_id)
 
     def _create_new_budget(self):

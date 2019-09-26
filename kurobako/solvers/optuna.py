@@ -86,7 +86,7 @@ class OptunaSolver(object):
             raise NotImplementedError('{}'.format(param))
 
     def _create_new_trial(self):
-        trial_id = self._study.storage.create_new_trial_id(self._study.study_id)
+        trial_id = self._study.storage.create_new_trial(self._study.study_id)
         return optuna.trial.Trial(self._study, trial_id)
 
     def _create_new_budget(self):

@@ -37,8 +37,8 @@ class OptunaSolver(object):
                 self._study._storage.get_trial(trial._trial_id).intermediate_values.keys())
             budget = Budget(consumption + 1, consumption=consumption)
 
-        params = ParamDomain.ask_independent_values(
-            self._problem.params_domain, lambda p: self._suggest(p, trial))
+        params = ParamDomain.ask_independent_values(self._problem.params_domain,
+                                                    lambda p: self._suggest(p, trial))
 
         self._runnings[trial.number] = trial
         return trial.number, params, budget
@@ -55,7 +55,7 @@ class OptunaSolver(object):
         if self._problem.is_completed(budget):
             trial.report(value)
             self._study._storage.set_trial_state(trial._trial_id,
-                                                optuna.structs.TrialState.COMPLETE)
+                                                 optuna.structs.TrialState.COMPLETE)
             self._study._log_completed_trial(trial.number, value)
         else:
             trial.report(value, budget.consumption)

@@ -60,8 +60,8 @@ class ContinuousRange(Range):
 
 class DiscreteRange(Range):
     def __init__(self, low: int, high: int):
-        self._low = low
-        self._high = high
+        self._low = int(low)
+        self._high = int(high)
 
     @property
     def low(self) -> float:

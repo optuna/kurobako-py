@@ -1,6 +1,8 @@
 import abc
 import copy
+import enum
 import json
+import numpy as np
 from typing import Any
 from typing import Dict
 from typing import List
@@ -8,9 +10,138 @@ from typing import Optional
 from typing import List
 from typing import Union
 
-from kurobako.parameter import ParamDomain
-from kurobako.domain import Domain
-from kurobako.domain import Var
+
+class Range(object, metaclass=abc.ABCMeta):
+    @property
+    @abc.abstractmethod
+    def low(self) -> float:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def high(self) -> float:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    def to_dict(self) -> Dict[str, Any]:
+        raise NotImplementedError
+
+    @staticmethod
+    @abc.abstractmethod
+    def from_dict(d: Dict[str, Any]) -> Any:
+        raise NotImplementedError
+
+
+class ContinuousRange(Range):
+    def __init__(self, low: float, high: float):
+        self._low = low
+        self._high = high
+
+    @property
+    def low(self) -> float:
+        return self._low
+
+    @property
+    def high(self) -> float:
+        return self._high
+
+    def to_dict(self) -> Dict[str, Any]:
+        d = {'type': 'CONTINUOUS'}  # type: Dict[str, Any]
+        if np.isfinite(self._low):
+            d['low'] = self._low
+        if np.isfinite(self._high):
+            d['high'] = self._high
+        return d
+
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> Any:
+        return ContinuousRange(low=d['low'], high=d['high'])
+
+
+class DiscreteRange(Range):
+    def __init__(self, low: int, high: int):
+        self._low = low
+        self._high = high
+
+    @property
+    def low(self) -> float:
+        return self._low
+
+    @property
+    def high(self) -> float:
+        return self._high
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {'type': 'DISCRETE', 'low': self._low, 'high': self._high}
+
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> Any:
+        return DiscreteRange(low=d['low'], high=d['high'])
+
+
+class CategoricalRange(Range):
+    def __init__(self, choices: List[str]):
+        self.choices = choices
+
+    @property
+    def low(self) -> float:
+        return 0
+
+    @property
+    def high(self) -> float:
+        return len(self.choices)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {'type': 'CATEGORICAL', 'choices': self.choices}
+
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> Any:
+        return CategoricalRange(choices=d['choices'])
+
+
+class Distribution(enum.Enum):
+    UNIFORM = 0
+    LOG_UNIFORM = 1
+
+    def to_str(self) -> str:
+        if self == Distribution.UNIFORM:
+            return 'UNIFORM'
+        else:
+            return 'LOG_UNIFORM'
+
+    @staticmethod
+    def from_str(s: str) -> Any:
+        if s == 'UNIFORM':
+            return Distribution.UNIFORM
+        elif s == 'LOG_UNIFORM':
+            return Distribution.LOG_UNIFORM
+        else:
+            raise ValueError
+
+
+class Var(object):
+    """A variable in a domain."""
+    def __init__(self,
+                 name: str,
+                 range: Range = ContinuousRange(low=float('-inf'), high=float('inf')),
+                 distribution: Distribution = Distribution.UNIFORM):
+        self.name = name
+        self.range = range
+        self.distribution = distribution
+        # TODO: add `condition` field
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            'name': self.name,
+            'range': self.range.to_dict(),
+            'distribution': self.distribution.to_str()
+        }
+
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> Any:
+        return Var(name=d['name'],
+                   range=Range.from_dict(d['range']),
+                   distribution=Distribution.from_str(d['distribution']))
 
 
 class ProblemSpec(object):
@@ -23,8 +154,8 @@ class ProblemSpec(object):
                  steps: Union[int, List[int]] = 1):
         self.name = name
         self.attrs = copy.deepcopy(attrs)
-        self.params_domain = Domain(params)
-        self.values_domain = Domain(values)
+        self.params = params
+        self.values = values
         self.steps = steps
 
     @staticmethod
@@ -33,8 +164,8 @@ class ProblemSpec(object):
 
         return ProblemSpec(name=d['name'],
                            attrs=d['attrs'],
-                           params=Domain.from_list(d['params_domain']).variables,
-                           values=Domain.from_list(d['values_domain']).variables,
+                           params=[Var.from_dict(v) for v in d['params_domain']],
+                           values=[Var.from_dict(v) for v in d['values_domain']],
                            steps=d['steps'])
 
     def to_dict(self) -> Dict[str, Any]:
@@ -43,8 +174,8 @@ class ProblemSpec(object):
         return {
             'name': self.name,
             'attrs': self.attrs,
-            'params_domain': self.params_domain.to_list(),
-            'values_domain': self.values_domain.to_list(),
+            'params_domain': [v.to_dict() for v in self.params],
+            'values_domain': [v.to_dict() for v in self.values],
             'steps': self.steps
         }
 
@@ -86,7 +217,7 @@ class ProblemRunner(object):
         while True:
             message = self._recv_message()
             if message is None:
-                break;
+                break
 
             message_type = message['type']
             if message_type == 'CREATE_PROBLEM_CAST':

@@ -1,5 +1,7 @@
+# TODO: merge with problem module
 import abc
 import enum
+import numpy as np
 from typing import Any
 from typing import Dict
 from typing import List
@@ -40,7 +42,12 @@ class ContinuousRange(Range):
         return self._high
 
     def to_dict(self) -> Dict[str, Any]:
-        return {'low': self._low, 'high': self._high}
+        d = {'type': 'CONTINUOUS'}
+        if np.isfinite(self._low):
+            d['low'] = self._low
+        if np.isfinite(self._high):
+            d['high'] = self._high
+        return d
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Any:
@@ -61,7 +68,7 @@ class DiscreteRange(Range):
         return self._high
 
     def to_dict(self) -> Dict[str, Any]:
-        return {'low': self._low, 'high': self._high}
+        return {'type': 'DISCRETE', 'low': self._low, 'high': self._high}
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Any:
@@ -81,7 +88,7 @@ class CategoricalRange(Range):
         return len(self.choices)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {'choices': self.choices}
+        return {'type': 'CATEGORICAL', 'choices': self.choices}
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Any:
@@ -108,9 +115,12 @@ class Distribution(enum.Enum):
             raise ValueError
 
 
-class Variable(object):
+class Var(object):
     """A variable in a domain."""
-    def __init__(self, name: str, range: Range, distribution: Distribution = Distribution.UNIFORM):
+    def __init__(self,
+                 name: str,
+                 range: Range = ContinuousRange(low=float('-inf'), high=float('inf')),
+                 distribution: Distribution = Distribution.UNIFORM):
         self.name = name
         self.range = range
         self.distribution = distribution
@@ -125,14 +135,14 @@ class Variable(object):
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Any:
-        return Variable(name=d['name'],
-                        range=Range.from_dict(d['range']),
-                        distribution=Distribution.from_str(d['distribution']))
+        return Var(name=d['name'],
+                   range=Range.from_dict(d['range']),
+                   distribution=Distribution.from_str(d['distribution']))
 
 
 class Domain(object):
     """Domain of input parameters or objective values."""
-    def __init__(self, variables: List[Variable]):
+    def __init__(self, variables: List[Var]):
         self.variables = variables
 
     def to_list(self) -> List[Any]:
@@ -140,4 +150,4 @@ class Domain(object):
 
     @staticmethod
     def from_list(xs: List[Any]) -> Any:
-        return Domain(variables=[Variable.from_dict(x) for x in xs])
+        return Domain(variables=[Var.from_dict(x) for x in xs])

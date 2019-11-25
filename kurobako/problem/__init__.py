@@ -85,6 +85,9 @@ class ProblemRunner(object):
 
         while True:
             message = self._recv_message()
+            if message is None:
+                break;
+
             message_type = message['type']
             if message_type == 'CREATE_PROBLEM_CAST':
                 self._handle_create_problem_cast(message)
@@ -150,5 +153,9 @@ class ProblemRunner(object):
     def _send_message(self, message: Dict[str, Any]):
         print(json.dumps(message))
 
-    def _recv_message(self) -> Dict[str, Any]:
-        return json.loads(input())
+    def _recv_message(self) -> Optional[Dict[str, Any]]:
+        try:
+            message = input()
+            return json.loads(message)
+        except:
+            return None

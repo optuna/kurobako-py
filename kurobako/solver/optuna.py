@@ -17,9 +17,12 @@ class OptunaSolverFactory(solver.SolverFactory):
         return solver.SolverSpec(
             name='Optuna',
             attrs={
-                'version': optuna.__version__,
-                'github': 'https://github.com/optuna/optuna',
-                'paper': 'Optuna: A Next-generation Hyperparameter Optimization Framework'
+                'version':
+                optuna.__version__,
+                'github':
+                'https://github.com/optuna/optuna',
+                'paper':
+                'Akiba, Takuya, et al. "Optuna: A next-generation hyperparameter optimization framework." Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining. ACM, 2019.'
             },
             capabilities={
                 solver.Capability.UNIFORM_CONTINUOUS, solver.Capability.LOG_UNIFORM_CONTINUOUS,

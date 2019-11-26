@@ -27,9 +27,15 @@ class Range(object, metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @staticmethod
-    @abc.abstractmethod
     def from_dict(d: Dict[str, Any]) -> Any:
-        raise NotImplementedError
+        if d['type'] == 'CONTINUOUS':
+            return ContinuousRange.from_dict(d)
+        elif d['type'] == 'DISCRETE':
+            return DiscreteRange.from_dict(d)
+        elif d['type'] == 'CATEGORICAL':
+            return CategoricalRange.from_dict(d)
+        else:
+            raise ValueError('Unknown range: {}'.format(d))
 
 
 class ContinuousRange(Range):
@@ -55,6 +61,10 @@ class ContinuousRange(Range):
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Any:
+        if 'low' not in d:
+            d['low'] = float('-inf')
+        if 'high' not in d:
+            d['high'] = float('inf')
         return ContinuousRange(low=d['low'], high=d['high'])
 
 

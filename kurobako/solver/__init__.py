@@ -2,6 +2,7 @@ import abc
 import copy
 import enum
 import json
+import numpy as np
 from typing import Any
 from typing import Dict
 from typing import List
@@ -174,6 +175,7 @@ class SolverRunner(object):
         problem = ProblemSpec.from_dict(message['problem'])
         assert solver_id not in self._solvers
 
+        random_seed = random_seed % np.iinfo(np.uint32).max
         solver = self._factory.create_solver(random_seed, problem)
         self._solvers[solver_id] = solver
 
@@ -189,7 +191,7 @@ class SolverRunner(object):
         solver = self._solvers[solver_id]
         trial = solver.ask(idg)
 
-        message = {'type': 'ASK_REPLY', 'trial': trial, 'next_trial_id': idg.next_id}
+        message = {'type': 'ASK_REPLY', 'trial': trial.to_dict(), 'next_trial_id': idg.next_id}
         self._send_message(message)
 
     def _handle_tell_call(self, message: Dict[str, Any]):
@@ -197,7 +199,7 @@ class SolverRunner(object):
         trial = message['trial']
 
         solver = self._solvers[solver_id]
-        solver.tell(trial.id, trial.values, trial.current_step)
+        solver.tell(trial['id'], trial['values'], trial['current_step'])
 
         message = {'type': 'TELL_REPLY'}
         self._send_message(message)

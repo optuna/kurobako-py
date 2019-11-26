@@ -47,10 +47,13 @@ class OptunaSolver(solver.Solver):
         elif self._waitings.empty():
             kurobako_trial_id = idg.generate()
             trial = self._create_new_trial()
-            next_step = 1
+            if isinstance(self._study.pruner, optuna.pruners.NopPruner):
+                next_step = self._problem.last_step
+            else:
+                next_step = 1
         else:
             kurobako_trial_id, trial = self._waitings.get()
-            current_step = self._study._storage.get_trial(trial._trial_id).last_step()
+            current_step = self._study._storage.get_trial(trial._trial_id).last_step
             next_step = current_step + 1
 
         params = []  # type: List[float]
@@ -62,7 +65,11 @@ class OptunaSolver(solver.Solver):
 
     def _suggest(self, trial: optuna.Trial, v: problem.Var) -> float:
         if v.name in trial.params:
-            return trial.params[v.name]
+            if isinstance(trial.params[v.name], str):
+                assert isinstance(v.range, problem.CategoricalRange)
+                return v.range.choices.index(trial.params[v.name])
+            else:
+                return trial.params[v.name]
 
         if isinstance(v.range, problem.ContinuousRange):
             if v.distribution == problem.Distribution.UNIFORM:
@@ -70,9 +77,10 @@ class OptunaSolver(solver.Solver):
             elif v.distribution == problem.Distribution.LOG_UNIFORM:
                 return trial.suggest_log_uniform(v.name, v.range.low, v.range.high)
         elif isinstance(v.range, problem.DiscreteRange):
-            return trial.suggest_int(v.name, v.range.low, v.range.high)
+            return trial.suggest_int(v.name, v.range.low, v.range.high - 1)
         elif isinstance(v.range, problem.CategoricalRange):
-            return trial.suggest_categorical(v.name, v.range.choices)
+            category = trial.suggest_categorical(v.name, v.range.choices)
+            return v.range.choices.index(category)
 
         raise ValueError('Unsupported parameter: {}'.format(v))
 

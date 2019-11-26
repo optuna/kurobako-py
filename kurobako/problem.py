@@ -158,6 +158,13 @@ class ProblemSpec(object):
         self.values = values
         self.steps = steps
 
+    @property
+    def last_step(self) -> int:
+        if isinstance(self.steps, int):
+            return self.steps
+        else:
+            return self.steps[-1]
+
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Any:
         """Creates a `ProblemSpec` instance from the given dictionary."""
@@ -214,24 +221,29 @@ class ProblemRunner(object):
     def run(self):
         self._cast_problem_spec()
 
-        while True:
-            message = self._recv_message()
-            if message is None:
-                break
+        while self._run_once():
+            pass
 
-            message_type = message['type']
-            if message_type == 'CREATE_PROBLEM_CAST':
-                self._handle_create_problem_cast(message)
-            elif message_type == 'DROP_PROBLEM_CAST':
-                self._handle_drop_problem_cast(message)
-            elif message_type == 'CREATE_EVALUATOR_CALL':
-                self._handle_create_evaluator_call(message)
-            elif message_type == 'DROP_EVALUATOR_CAST':
-                self._handle_drop_evaluator_cast(message)
-            elif message_type == 'EVALUATE_CALL':
-                self._handle_evaluate_call(message)
-            else:
-                raise ValueError('Unexpected message: {}'.format(message))
+    def _run_once(self) -> bool:
+        message = self._recv_message()
+        if message is None:
+            return False
+
+        message_type = message['type']
+        if message_type == 'CREATE_PROBLEM_CAST':
+            self._handle_create_problem_cast(message)
+        elif message_type == 'DROP_PROBLEM_CAST':
+            self._handle_drop_problem_cast(message)
+        elif message_type == 'CREATE_EVALUATOR_CALL':
+            self._handle_create_evaluator_call(message)
+        elif message_type == 'DROP_EVALUATOR_CAST':
+            self._handle_drop_evaluator_cast(message)
+        elif message_type == 'EVALUATE_CALL':
+            self._handle_evaluate_call(message)
+        else:
+            raise ValueError('Unexpected message: {}'.format(message))
+
+        return True
 
     def _handle_create_problem_cast(self, message):
         problem_id = message['problem_id']

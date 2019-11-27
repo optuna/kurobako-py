@@ -95,8 +95,8 @@ class SolverSpec(object):
                                         for c in d['capabilities']})
 
 
-class Trial(object):
-    def __init__(self, trial_id: int, params: List[float], next_step: Optional[int]):
+class NextTrial(object):
+    def __init__(self, trial_id: int, params: List[Optional[float]], next_step: Optional[int]):
         self.trial_id = trial_id
         self.params = params
         self.next_step = next_step
@@ -105,8 +105,22 @@ class Trial(object):
         return {'id': self.trial_id, 'params': self.params, 'next_step': self.next_step}
 
     @staticmethod
-    def from_str(d: Dict[str, Any]) -> Any:
-        return Trial(trial_id=d['id'], params=d['params'], next_step=d['next_step'])
+    def from_dict(d: Dict[str, Any]) -> Any:
+        return NextTrial(trial_id=d['id'], params=d['params'], next_step=d['next_step'])
+
+
+class EvaluatedTrial(object):
+    def __init__(self, trial_id: int, values: List[float], current_step: int):
+        self.trial_id = trial_id
+        self.values = values
+        self.current_step = current_step
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {'id': self.trial_id, 'values': self.values, 'current_step': self.current_step}
+
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> Any:
+        return EvaluatedTrial(trial_id=d['id'], values=d['values'], current_step=d['current_step'])
 
 
 class TrialIdGenerator(object):
@@ -121,11 +135,11 @@ class TrialIdGenerator(object):
 
 class Solver(object):
     @abc.abstractmethod
-    def ask(self, idg: TrialIdGenerator) -> Trial:
+    def ask(self, idg: TrialIdGenerator) -> NextTrial:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def tell(self, trial_id: int, values: List[float], current_step: int):
+    def tell(self, trial: EvaluatedTrial):
         raise NotImplementedError
 
 
@@ -196,10 +210,10 @@ class SolverRunner(object):
 
     def _handle_tell_call(self, message: Dict[str, Any]):
         solver_id = message['solver_id']
-        trial = message['trial']
+        trial = EvaluatedTrial.from_dict(message['trial'])
 
         solver = self._solvers[solver_id]
-        solver.tell(trial['id'], trial['values'], trial['current_step'])
+        solver.tell(trial)
 
         message = {'type': 'TELL_REPLY'}
         self._send_message(message)

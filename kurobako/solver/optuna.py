@@ -4,6 +4,7 @@ import queue
 from typing import Callable
 from typing import Dict
 from typing import List
+from typing import Optional
 from typing import Tuple
 
 from kurobako import problem
@@ -78,12 +79,15 @@ class OptunaSolver(solver.Solver):
             current_step = self._study._storage.get_trial(trial._trial_id).last_step
             next_step = self._next_step(current_step)
 
-        params = []  # type: List[float]
+        params = []  # type: List[Optional[float]]
         for p in self._problem.params:
-            params.append(self._suggest(trial, p))
+            if p.is_constraint_satisfied(self._problem.params, params):
+                params.append(self._suggest(trial, p))
+            else:
+                params.append(None)
 
         self._runnings[kurobako_trial_id] = trial
-        return solver.Trial(trial_id=kurobako_trial_id, params=params, next_step=next_step)
+        return solver.NextTrial(trial_id=kurobako_trial_id, params=params, next_step=next_step)
 
     def _suggest(self, trial: optuna.Trial, v: problem.Var) -> float:
         if v.name in trial.params:
@@ -106,7 +110,11 @@ class OptunaSolver(solver.Solver):
 
         raise ValueError('Unsupported parameter: {}'.format(v))
 
-    def tell(self, kurobako_trial_id: int, values: List[float], current_step: int):
+    def tell(self, evaluated_trial: solver.EvaluatedTrial):
+        kurobako_trial_id = evaluated_trial.trial_id
+        values = evaluated_trial.values
+        current_step = evaluated_trial.current_step
+
         trial = self._runnings[kurobako_trial_id]
         del self._runnings[kurobako_trial_id]
 

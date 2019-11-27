@@ -142,18 +142,21 @@ class Var(object):
         self.distribution = distribution
         self.constraint = constraint
 
-    def is_constraint_satisfied(self, preceding_vars: List[Var], vals: List[float]) -> bool:
+    def is_constraint_satisfied(self, vars: List[Var], vals: List[Optional[float]]) -> bool:
         if self.constraint is None:
             return True
 
         lua = LuaRuntime()
-        for var, val in zip(preceding_vars, vals):
+        for var, val in zip(vars, vals):
+            if val is None:
+                continue
+
             if isinstance(var.range, CategoricalRange):
-                val = var.range.choices[int(val)]
+                val = var.range.choices[int(val)]  # type: ignore
 
             lua.execute('{} = {}'.format(var.name, repr(val)))
 
-        return lua.eval(constraint)
+        return lua.eval(self.constraint)
 
     def to_dict(self) -> Dict[str, Any]:
         return {

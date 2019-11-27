@@ -228,7 +228,7 @@ class Evaluator(object):
 
 class Problem(object):
     @abc.abstractmethod
-    def create_evaluator(self, params: List[float]) -> Optional[Evaluator]:
+    def create_evaluator(self, params: List[Optional[float]]) -> Optional[Evaluator]:
         raise NotImplementedError
 
 

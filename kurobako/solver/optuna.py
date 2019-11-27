@@ -43,6 +43,20 @@ class OptunaSolver(solver.Solver):
         self._pruned = queue.Queue()  # type: queue.Queue[Tuple[int, optuna.Trial]]
         self._runnings = {}  # type: Dict[int, optuna.Trial]
 
+    def _next_step(self, current_step: int) -> int:
+        pruner = self._study.pruner
+        if isinstance(pruner, optuna.pruners.NopPruner):
+            return self._problem.last_step
+        elif isinstance(pruner, optuna.pruners.SuccessiveHalvingPruner):
+            rung = 0
+            while True:
+                step = pruner.min_resource * (pruner.reduction_factor ** (pruner.min_early_stopping_rate + rung))
+                if step > current_step:
+                    return min(step, self._problem.last_step)
+                rung += 1
+        else:
+            return current_step + 1
+
     def ask(self, idg: solver.TrialIdGenerator) -> solver.Trial:
         if not self._pruned.empty():
             kurobako_trial_id, trial = self._pruned.get()
@@ -50,14 +64,11 @@ class OptunaSolver(solver.Solver):
         elif self._waitings.empty():
             kurobako_trial_id = idg.generate()
             trial = self._create_new_trial()
-            if isinstance(self._study.pruner, optuna.pruners.NopPruner):
-                next_step = self._problem.last_step
-            else:
-                next_step = 1
+            next_step = self._next_step(0)
         else:
             kurobako_trial_id, trial = self._waitings.get()
             current_step = self._study._storage.get_trial(trial._trial_id).last_step
-            next_step = current_step + 1
+            next_step = self._next_step(current_step)
 
         params = []  # type: List[float]
         for p in self._problem.params:

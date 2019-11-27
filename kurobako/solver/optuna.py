@@ -50,7 +50,7 @@ class OptunaSolver(solver.Solver):
         elif isinstance(pruner, optuna.pruners.SuccessiveHalvingPruner):
             rung = 0
             while True:
-                step = pruner.min_resource * (pruner.reduction_factor ** (pruner.min_early_stopping_rate + rung))
+                step = pruner._min_resource * (pruner._reduction_factor ** (pruner._min_early_stopping_rate + rung))
                 if step > current_step:
                     return min(step, self._problem.last_step)
                 rung += 1

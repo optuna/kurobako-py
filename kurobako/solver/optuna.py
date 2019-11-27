@@ -51,13 +51,17 @@ class OptunaSolver(solver.Solver):
         if isinstance(pruner, optuna.pruners.NopPruner):
             return self._problem.last_step
         elif isinstance(pruner, optuna.pruners.SuccessiveHalvingPruner):
-            rung = 0
-            while True:
-                step = pruner._min_resource * (pruner._reduction_factor
-                                               **(pruner._min_early_stopping_rate + rung))
-                if step > current_step:
-                    return min(step, self._problem.last_step)
-                rung += 1
+            try:
+                rung = 0
+                while True:
+                    step = pruner._min_resource * (pruner._reduction_factor
+                                                   **(pruner._min_early_stopping_rate + rung))
+                    if step > current_step:
+                        return min(step, self._problem.last_step)
+                    rung += 1
+            except:
+                # For compatibility.
+                return current_step + 1
         else:
             return current_step + 1
 
@@ -136,5 +140,10 @@ class OptunaSolver(solver.Solver):
                 self._waitings.put((kurobako_trial_id, trial))
 
     def _create_new_trial(self):
-        trial_id = self._study._storage.create_new_trial(self._study.study_id)
+        try:
+            trial_id = self._study._storage.create_new_trial(self._study._study_id)
+        except:
+            # For compatibility.
+            trial_id = self._study._storage.create_new_trial(self._study.study_id)
+
         return optuna.trial.Trial(self._study, trial_id)

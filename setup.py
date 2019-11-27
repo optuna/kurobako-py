@@ -20,5 +20,5 @@ setup(
     url='https://github.com/sile/kurobako-py',
     license='MIT',
     packages=find_packages(),
-    install_requires=['numpy'],
+    install_requires=['lupa', 'numpy'],
 )

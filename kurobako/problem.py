@@ -2,6 +2,7 @@ import abc
 import copy
 import enum
 import json
+from lupa import LuaRuntime
 import numpy as np
 from typing import Any
 from typing import Dict
@@ -134,24 +135,40 @@ class Var(object):
     def __init__(self,
                  name: str,
                  range: Range = ContinuousRange(low=float('-inf'), high=float('inf')),
-                 distribution: Distribution = Distribution.UNIFORM):
+                 distribution: Distribution = Distribution.UNIFORM,
+                 constraint: Optional[str] = None):
         self.name = name
         self.range = range
         self.distribution = distribution
-        # TODO: add `condition` field
+        self.constraint = constraint
+
+    def is_constraint_satisfied(self, preceding_vars: List[Var], vals: List[float]) -> bool:
+        if self.constraint is None:
+            return True
+
+        lua = LuaRuntime()
+        for var, val in zip(preceding_vars, vals):
+            if isinstance(var.range, CategoricalRange):
+                val = var.range.choices[int(val)]
+
+            lua.execute('{} = {}'.format(var.name, repr(val)))
+
+        return lua.eval(constraint)
 
     def to_dict(self) -> Dict[str, Any]:
         return {
             'name': self.name,
             'range': self.range.to_dict(),
-            'distribution': self.distribution.to_str()
+            'distribution': self.distribution.to_str(),
+            'constraint': self.constraint,
         }
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Any:
         return Var(name=d['name'],
                    range=Range.from_dict(d['range']),
-                   distribution=Distribution.from_str(d['distribution']))
+                   distribution=Distribution.from_str(d['distribution']),
+                   constraint=d['constraint'])
 
 
 class ProblemSpec(object):

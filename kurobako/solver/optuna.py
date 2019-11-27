@@ -1,4 +1,5 @@
 import optuna
+from pkg_resources import get_distribution
 import queue
 from typing import Callable
 from typing import Dict
@@ -18,7 +19,9 @@ class OptunaSolverFactory(solver.SolverFactory):
             name='Optuna',
             attrs={
                 'version':
-                optuna.__version__,
+                'optuna={}, kurobako-py={}'.format(
+                    get_distribution('optuna').version,
+                    get_distribution('kurobako').version),
                 'github':
                 'https://github.com/optuna/optuna',
                 'paper':
@@ -50,7 +53,8 @@ class OptunaSolver(solver.Solver):
         elif isinstance(pruner, optuna.pruners.SuccessiveHalvingPruner):
             rung = 0
             while True:
-                step = pruner._min_resource * (pruner._reduction_factor ** (pruner._min_early_stopping_rate + rung))
+                step = pruner._min_resource * (pruner._reduction_factor
+                                               **(pruner._min_early_stopping_rate + rung))
                 if step > current_step:
                     return min(step, self._problem.last_step)
                 rung += 1

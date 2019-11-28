@@ -20,4 +20,4 @@ setup(name="kurobako",
       license='MIT',
       packages=find_packages(),
       install_requires=['lupa', 'numpy'],
-      extras_require={'checking': ['autopep8', 'hacking', 'yapf']})
+      extras_require={'checking': ['hacking', 'yapf']})

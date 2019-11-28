@@ -132,10 +132,9 @@ class Distribution(enum.Enum):
 
 class Var(object):
     """A variable in a domain."""
-
     def __init__(self,
                  name: str,
-                 range: Range = ContinuousRange(low = float('-inf'), high = float('inf')),
+                 range: Range = ContinuousRange(low=float('-inf'), high=float('inf')),
                  distribution: Distribution = Distribution.UNIFORM,
                  constraint: Optional[str] = None):
         self.name = name
@@ -177,7 +176,6 @@ class Var(object):
 
 class ProblemSpec(object):
     """Problem specification."""
-
     def __init__(self,
                  name: str,
                  params: List[Var],

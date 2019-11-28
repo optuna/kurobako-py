@@ -33,7 +33,6 @@ jobs:
 
     - name: Run checks
       run: |
-        autopep8 . -r --diff --exit-code
         flake8 .
         mypy --ignore-missing-import .
         yapf -r --diff

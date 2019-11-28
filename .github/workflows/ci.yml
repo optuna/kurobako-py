@@ -1,4 +1,4 @@
-name: Optuna CI
+name: CI
 
 on: [push]
 

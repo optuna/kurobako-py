@@ -2,6 +2,9 @@ import optuna
 from pkg_resources import get_distribution
 import queue
 from typing import Callable
+from typing import Dict  # NOQA
+from typing import List  # NOQA
+from typing import Tuple  # NOQA
 
 from kurobako import problem
 from kurobako import solver
@@ -64,7 +67,7 @@ class OptunaSolver(solver.Solver):
         else:
             return current_step + 1
 
-    def ask(self, idg: solver.TrialIdGenerator) -> solver.Trial:
+    def ask(self, idg: solver.TrialIdGenerator) -> solver.NextTrial:
         if not self._pruned.empty():
             kurobako_trial_id, trial = self._pruned.get()
             next_step = None

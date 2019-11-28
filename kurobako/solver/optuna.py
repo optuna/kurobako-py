@@ -56,7 +56,7 @@ class OptunaSolver(solver.Solver):
                 rung = 0
                 while True:
                     step = pruner._min_resource * (pruner._reduction_factor
-                                                   **(pruner._min_early_stopping_rate + rung))
+                                                   ** (pruner._min_early_stopping_rate + rung))
                     if step > current_step:
                         return min(step, self._problem.last_step)
                     rung += 1

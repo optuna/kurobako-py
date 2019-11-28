@@ -21,7 +21,7 @@ setup(
     license='MIT',
     packages=find_packages(),
     install_requires=['lupa', 'numpy'],
-    extra_require={
+    extras_require={
         'checking': ['autopep8', 'hacking', 'yapf']
     }
 )

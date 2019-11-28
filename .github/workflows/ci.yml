@@ -43,7 +43,5 @@ jobs:
     #     pip install --progress-bar off $(ls dist/*.tar.gz)[testing]
 
     # - name: Run unit tests
-    #   env:
-    #     OMP_NUM_THREADS: 1
     #   run: |
     #     pytest tests

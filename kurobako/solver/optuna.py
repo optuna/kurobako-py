@@ -2,10 +2,6 @@ import optuna
 from pkg_resources import get_distribution
 import queue
 from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Tuple
 
 from kurobako import problem
 from kurobako import solver
@@ -26,7 +22,9 @@ class OptunaSolverFactory(solver.SolverFactory):
                 'github':
                 'https://github.com/optuna/optuna',
                 'paper':
-                'Akiba, Takuya, et al. "Optuna: A next-generation hyperparameter optimization framework." Proceedings of the 25th ACM SIGKDD International Conference on Knowledge Discovery & Data Mining. ACM, 2019.'
+                'Akiba, Takuya, et al. "Optuna: A next-generation hyperparameter '
+                'optimization framework." Proceedings of the 25th ACM SIGKDD International '
+                'Conference on Knowledge Discovery & Data Mining. ACM, 2019.'
             },
             capabilities={
                 solver.Capability.UNIFORM_CONTINUOUS, solver.Capability.LOG_UNIFORM_CONTINUOUS,
@@ -55,12 +53,12 @@ class OptunaSolver(solver.Solver):
             try:
                 rung = 0
                 while True:
-                    step = pruner._min_resource * (pruner._reduction_factor
-                                                   **(pruner._min_early_stopping_rate + rung))
+                    n = pruner._min_early_stopping_rate + rung
+                    step = pruner._min_resource * (pruner._reduction_factor**n)
                     if step > current_step:
                         return min(step, self._problem.last_step)
                     rung += 1
-            except:
+            except Exception:
                 # For compatibility.
                 return current_step + 1
         else:
@@ -150,7 +148,7 @@ class OptunaSolver(solver.Solver):
     def _create_new_trial(self):
         try:
             trial_id = self._study._storage.create_new_trial(self._study._study_id)
-        except:
+        except Exception:
             # For compatibility.
             trial_id = self._study._storage.create_new_trial(self._study.study_id)
 

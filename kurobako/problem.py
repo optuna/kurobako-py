@@ -8,8 +8,9 @@ from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
-from typing import List
 from typing import Union
+
+Self = Any
 
 
 class Range(object, metaclass=abc.ABCMeta):
@@ -134,7 +135,7 @@ class Var(object):
     """A variable in a domain."""
     def __init__(self,
                  name: str,
-                 range: Range = ContinuousRange(low=float('-inf'), high=float('inf')),
+                 range: Range = ContinuousRange(float('-inf'), float('inf')),
                  distribution: Distribution = Distribution.UNIFORM,
                  constraint: Optional[str] = None):
         self.name = name
@@ -142,7 +143,7 @@ class Var(object):
         self.distribution = distribution
         self.constraint = constraint
 
-    def is_constraint_satisfied(self, vars: List[Var], vals: List[Optional[float]]) -> bool:
+    def is_constraint_satisfied(self, vars: List[Self], vals: List[Optional[float]]) -> bool:
         if self.constraint is None:
             return True
 
@@ -330,5 +331,5 @@ class ProblemRunner(object):
         try:
             message = input()
             return json.loads(message)
-        except:
+        except Exception:
             return None

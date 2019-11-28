@@ -229,5 +229,5 @@ class SolverRunner(object):
         try:
             message = input()
             return json.loads(message)
-        except:
+        except Exception:
             return None

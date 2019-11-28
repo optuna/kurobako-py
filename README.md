@@ -1,6 +1,10 @@
 kurobako-py
 ===========
 
-A Python library for helping implement [kurobako]'s solvers and problems.
+[![pypi](https://img.shields.io/pypi/v/kurobako.svg)](https://pypi.python.org/pypi/kurobako)
+[![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/sile/kurobako-py)
+[![Actions Status](https://github.com/sile/kurobako-py/workflows/CI/badge.svg)](https://github.com/sile/kurobako-py/actions)
+
+A Python library to help implementing [kurobako]'s solvers and problems
 
 [kurobako]: https://github.com/sile/kurobako

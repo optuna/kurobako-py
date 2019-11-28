@@ -172,7 +172,7 @@ class Var(object):
         return Var(name=d['name'],
                    range=Range.from_dict(d['range']),
                    distribution=Distribution.from_str(d['distribution']),
-                   constraint=d['constraint'])
+                   constraint=d['constraint'] if 'constraint' in d else None)
 
 
 class ProblemSpec(object):

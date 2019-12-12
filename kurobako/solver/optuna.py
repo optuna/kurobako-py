@@ -10,6 +10,8 @@ from typing import Tuple  # NOQA
 from kurobako import problem
 from kurobako import solver
 
+_optuna_logger = optuna.logging.get_logger(__name__)
+
 
 class OptunaSolverFactory(solver.SolverFactory):
     def __init__(self, create_study: Callable[[int], optuna.Study]):
@@ -122,7 +124,7 @@ class OptunaSolver(solver.Solver):
 
         if len(values) == 0:
             message = 'Unevaluable trial#{}: step={}'.format(trial.number, current_step)
-            self._study.logger.info(message)
+            _optuna_logger.info(message)
             self._study._storage.set_trial_state(trial._trial_id, optuna.structs.TrialState.PRUNED)
             return
 
@@ -142,7 +144,7 @@ class OptunaSolver(solver.Solver):
             if trial.should_prune(current_step):
                 message = 'Pruned trial#{}: step={}, value={}'.format(
                     trial.number, current_step, value)
-                self._study.logger.info(message)
+                _optuna_logger.info(message)
                 self._study._storage.set_trial_state(trial._trial_id,
                                                      optuna.structs.TrialState.PRUNED)
                 self._pruned.put((kurobako_trial_id, trial))

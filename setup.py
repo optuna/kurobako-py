@@ -10,7 +10,7 @@ def get_long_description() -> str:
 
 
 setup(name="kurobako",
-      version="0.1.0",
+      version="0.1.1",
       description="A Python library to help implementing kurobako's solvers and problems",
       long_description=get_long_description(),
       long_description_content_type='text/markdown',

@@ -14,8 +14,11 @@ _optuna_logger = optuna.logging.get_logger(__name__)
 
 
 class OptunaSolverFactory(solver.SolverFactory):
-    def __init__(self, create_study: Callable[[int], optuna.Study]):
+    def __init__(self,
+                 create_study: Callable[[int], optuna.Study],
+                 use_discrete_uniform: bool = False):
         self._create_study = create_study
+        self._use_discrete_uniform = use_discrete_uniform
 
     def specification(self) -> solver.SolverSpec:
         return solver.SolverSpec(
@@ -40,13 +43,17 @@ class OptunaSolverFactory(solver.SolverFactory):
 
     def create_solver(self, seed: int, problem: problem.ProblemSpec) -> solver.Solver:
         study = self._create_study(seed)
-        return OptunaSolver(study, problem)
+        return OptunaSolver(study, problem, use_discrete_uniform=self._use_discrete_uniform)
 
 
 class OptunaSolver(solver.Solver):
-    def __init__(self, study: optuna.Study, problem: problem.ProblemSpec):
+    def __init__(self,
+                 study: optuna.Study,
+                 problem: problem.ProblemSpec,
+                 use_discrete_uniform: bool = False):
         self._study = study
         self._problem = problem
+        self._use_discrete_uniform = use_discrete_uniform
         self._waitings = queue.Queue()  # type: queue.Queue[Tuple[int, optuna.Trial]]
         self._pruned = queue.Queue()  # type: queue.Queue[Tuple[int, optuna.Trial]]
         self._runnings = {}  # type: Dict[int, optuna.Trial]
@@ -107,7 +114,10 @@ class OptunaSolver(solver.Solver):
             elif v.distribution == problem.Distribution.LOG_UNIFORM:
                 return trial.suggest_log_uniform(v.name, v.range.low, v.range.high)
         elif isinstance(v.range, problem.DiscreteRange):
-            return trial.suggest_int(v.name, v.range.low, v.range.high - 1)
+            if self._use_discrete_uniform:
+                return trial.suggest_discrete_uniform(v.name, v.range.low, v.range.high - 1, q=1)
+            else:
+                return trial.suggest_int(v.name, v.range.low, v.range.high - 1)
         elif isinstance(v.range, problem.CategoricalRange):
             category = trial.suggest_categorical(v.name, v.range.choices)
             return v.range.choices.index(category)

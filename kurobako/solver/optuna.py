@@ -145,7 +145,7 @@ class OptunaSolver(solver.Solver):
 
         assert current_step <= self._problem.last_step
         if self._problem.last_step == current_step:
-            trial.report(value)
+            self._study._storage.set_trial_value(trial._trial_id, value)
             self._study._storage.set_trial_state(trial._trial_id,
                                                  optuna.structs.TrialState.COMPLETE)
             self._study._log_completed_trial(trial.number, value)

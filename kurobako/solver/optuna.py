@@ -14,32 +14,33 @@ _optuna_logger = optuna.logging.get_logger(__name__)
 
 
 class OptunaSolverFactory(solver.SolverFactory):
-    def __init__(self,
-                 create_study: Callable[[int], optuna.Study],
-                 use_discrete_uniform: bool = False):
+    def __init__(
+        self, create_study: Callable[[int], optuna.Study], use_discrete_uniform: bool = False
+    ):
         self._create_study = create_study
         self._use_discrete_uniform = use_discrete_uniform
 
     def specification(self) -> solver.SolverSpec:
         return solver.SolverSpec(
-            name='Optuna',
+            name="Optuna",
             attrs={
-                'version':
-                'optuna={}, kurobako-py={}'.format(
-                    get_distribution('optuna').version,
-                    get_distribution('kurobako').version),
-                'github':
-                'https://github.com/optuna/optuna',
-                'paper':
-                'Akiba, Takuya, et al. "Optuna: A next-generation hyperparameter '
+                "version": "optuna={}, kurobako-py={}".format(
+                    get_distribution("optuna").version, get_distribution("kurobako").version
+                ),
+                "github": "https://github.com/optuna/optuna",
+                "paper": 'Akiba, Takuya, et al. "Optuna: A next-generation hyperparameter '
                 'optimization framework." Proceedings of the 25th ACM SIGKDD International '
-                'Conference on Knowledge Discovery & Data Mining. ACM, 2019.'
+                "Conference on Knowledge Discovery & Data Mining. ACM, 2019.",
             },
             capabilities={
-                solver.Capability.UNIFORM_CONTINUOUS, solver.Capability.LOG_UNIFORM_CONTINUOUS,
-                solver.Capability.UNIFORM_DISCRETE, solver.Capability.CATEGORICAL,
-                solver.Capability.CONDITIONAL, solver.Capability.CONCURRENT
-            })
+                solver.Capability.UNIFORM_CONTINUOUS,
+                solver.Capability.LOG_UNIFORM_CONTINUOUS,
+                solver.Capability.UNIFORM_DISCRETE,
+                solver.Capability.CATEGORICAL,
+                solver.Capability.CONDITIONAL,
+                solver.Capability.CONCURRENT,
+            },
+        )
 
     def create_solver(self, seed: int, problem: problem.ProblemSpec) -> solver.Solver:
         study = self._create_study(seed)
@@ -47,10 +48,9 @@ class OptunaSolverFactory(solver.SolverFactory):
 
 
 class OptunaSolver(solver.Solver):
-    def __init__(self,
-                 study: optuna.Study,
-                 problem: problem.ProblemSpec,
-                 use_discrete_uniform: bool = False):
+    def __init__(
+        self, study: optuna.Study, problem: problem.ProblemSpec, use_discrete_uniform: bool = False
+    ):
         self._study = study
         self._problem = problem
         self._use_discrete_uniform = use_discrete_uniform
@@ -67,7 +67,7 @@ class OptunaSolver(solver.Solver):
                 rung = 0
                 while True:
                     n = pruner._min_early_stopping_rate + rung
-                    step = pruner._min_resource * (pruner._reduction_factor**n)
+                    step = pruner._min_resource * (pruner._reduction_factor ** n)
                     if step > current_step:
                         return min(step, self._problem.last_step)
                     rung += 1
@@ -122,7 +122,7 @@ class OptunaSolver(solver.Solver):
             category = trial.suggest_categorical(v.name, v.range.choices)
             return v.range.choices.index(category)
 
-        raise ValueError('Unsupported parameter: {}'.format(v))
+        raise ValueError("Unsupported parameter: {}".format(v))
 
     def tell(self, evaluated_trial: solver.EvaluatedTrial):
         kurobako_trial_id = evaluated_trial.trial_id
@@ -133,7 +133,7 @@ class OptunaSolver(solver.Solver):
         del self._runnings[kurobako_trial_id]
 
         if len(values) == 0:
-            message = 'Unevaluable trial#{}: step={}'.format(trial.number, current_step)
+            message = "Unevaluable trial#{}: step={}".format(trial.number, current_step)
             _optuna_logger.info(message)
             self._study._storage.set_trial_state(trial._trial_id, optuna.structs.TrialState.PRUNED)
             return
@@ -146,17 +146,20 @@ class OptunaSolver(solver.Solver):
         assert current_step <= self._problem.last_step
         if self._problem.last_step == current_step:
             self._study._storage.set_trial_value(trial._trial_id, value)
-            self._study._storage.set_trial_state(trial._trial_id,
-                                                 optuna.structs.TrialState.COMPLETE)
-            self._study._log_completed_trial(trial.number, value)
+            self._study._storage.set_trial_state(
+                trial._trial_id, optuna.structs.TrialState.COMPLETE
+            )
+            self._study._log_completed_trial(trial, value)
         else:
             trial.report(value, current_step)
             if trial.should_prune(current_step):
-                message = 'Pruned trial#{}: step={}, value={}'.format(
-                    trial.number, current_step, value)
+                message = "Pruned trial#{}: step={}, value={}".format(
+                    trial.number, current_step, value
+                )
                 _optuna_logger.info(message)
-                self._study._storage.set_trial_state(trial._trial_id,
-                                                     optuna.structs.TrialState.PRUNED)
+                self._study._storage.set_trial_state(
+                    trial._trial_id, optuna.structs.TrialState.PRUNED
+                )
                 self._pruned.put((kurobako_trial_id, trial))
             else:
                 self._waitings.put((kurobako_trial_id, trial))

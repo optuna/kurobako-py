@@ -6,7 +6,7 @@ from kurobako import solver
 
 class RandomSolverFactory(solver.SolverFactory):
     def specification(self) -> solver.SolverSpec:
-        return solver.SolverSpec(name='Random Search')
+        return solver.SolverSpec(name="Random Search")
 
     def create_solver(self, seed: int, problem: problem.ProblemSpec) -> solver.Solver:
         return RandomSolver(seed, problem)
@@ -35,6 +35,6 @@ class RandomSolver(solver.Solver):
         pass
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     runner = solver.SolverRunner(RandomSolverFactory())
     runner.run()

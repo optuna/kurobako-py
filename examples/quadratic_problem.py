@@ -6,12 +6,12 @@ from kurobako import problem
 class QuadraticProblemFactory(problem.ProblemFactory):
     def specification(self) -> problem.ProblemSpec:
         params = [
-            problem.Var('x', problem.ContinuousRange(-10, 10)),
-            problem.Var('y', problem.DiscreteRange(-3, 3))
+            problem.Var("x", problem.ContinuousRange(-10, 10)),
+            problem.Var("y", problem.DiscreteRange(-3, 3)),
         ]
-        return problem.ProblemSpec(name='Quadratic Function',
-                                   params=params,
-                                   values=[problem.Var('x**2 + y')])
+        return problem.ProblemSpec(
+            name="Quadratic Function", params=params, values=[problem.Var("x**2 + y")]
+        )
 
     def create_problem(self, seed: int) -> problem.Problem:
         return QuadraticProblem()
@@ -32,9 +32,9 @@ class QuadraticEvaluator(problem.Evaluator):
 
     def evaluate(self, next_step: int) -> List[float]:
         self._current_step = 1
-        return [self._x**2 + self._y]
+        return [self._x ** 2 + self._y]
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     runner = problem.ProblemRunner(QuadraticProblemFactory())
     runner.run()

@@ -21,5 +21,5 @@ setup(
     license="MIT",
     packages=find_packages(),
     install_requires=["lupa", "numpy"],
-    extras_require={"checking": ["hacking", "mypy", "yapf"]},
+    extras_require={"checking": ["hacking", "mypy", "black"]},
 )

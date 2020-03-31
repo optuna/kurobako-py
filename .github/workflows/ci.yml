@@ -35,7 +35,7 @@ jobs:
       run: |
         flake8 .
         mypy --ignore-missing-import .
-        yapf -r --diff .
+        black . --line-length 99 --check
 
     # - name: Install testing dependencies
     #   run: |

@@ -113,7 +113,7 @@ if __name__ == '__main__':
 ### Run a benchmark that uses the above solver and problem
 
 ```console
-$ SOLVER=$(kurobako solver command python random_solver.py)
-$ PROBLEM=$(kurobako problem command python quadratic_problem.py)
+$ SOLVER=$(kurobako solver command python3 random_solver.py)
+$ PROBLEM=$(kurobako problem command python3 quadratic_problem.py)
 $ kurobako studies --solvers $SOLVER --problems $PROBLEM | kurobako run > result.json
 ```

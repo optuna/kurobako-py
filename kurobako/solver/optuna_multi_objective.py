@@ -73,7 +73,8 @@ class OptunaSolver(solver.Solver):
         self._runnings = {}  # type: Dict[int, optuna.multi_objective.trial.MultiObjectiveTrial]
 
     def _next_step(self, current_step: int) -> int:
-        return current_step + 1
+        # TODO(ohta): Support pruning.
+        return self._problem.last_step
 
     def ask(self, idg: solver.TrialIdGenerator) -> solver.NextTrial:
         if not self._pruned.empty():
@@ -136,7 +137,9 @@ class OptunaSolver(solver.Solver):
         if len(values) == 0:
             message = "Unevaluable trial#{}: step={}".format(trial.number, current_step)
             _optuna_logger.info(message)
-            self._study._storage.set_trial_state(trial._trial_id, optuna.structs.TrialState.PRUNED)
+            self._study._storage.set_trial_state(
+                trial._trial._trial_id, optuna.structs.TrialState.PRUNED
+            )
             return
 
         assert current_step <= self._problem.last_step

@@ -155,7 +155,7 @@ class OptunaSolver(solver.Solver):
             #
             # trial.report(values, current_step)
             #
-            # if trial.should_prune(current_step):
+            # if trial.should_prune():
             #     message = "Pruned trial#{}: step={}, value={}".format(
             #         trial.number, current_step, value
             #     )

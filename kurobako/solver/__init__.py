@@ -80,12 +80,20 @@ class SolverSpec(object):
     def __init__(
         self,
         name: str,
-        capabilities: Set[Capability] = all_capabilities(),
-        attrs: Dict[str, str] = {},
+        capabilities: Optional[Set[Capability]] = None,
+        attrs: Optional[Dict[str, str]] = None,
     ):
         self.name = name
-        self.capabilities = copy.deepcopy(capabilities)
-        self.attrs = copy.deepcopy(attrs)
+
+        if capabilities is None:
+            self.capabilities = all_capabilities()
+        else:
+            self.capabilities = copy.deepcopy(capabilities)
+
+        if attrs is None:
+            self.attrs = {}
+        else:
+            self.attrs = copy.deepcopy(attrs)
 
     def to_dict(self) -> Dict[str, Any]:
         return {

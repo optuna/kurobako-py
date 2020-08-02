@@ -59,7 +59,7 @@ class OptunaSolver(solver.Solver):
         use_discrete_uniform: bool = False,
     ):
         for d in study.directions:
-            assert d == optuna.structs.StudyDirection.MINIMIZE
+            assert d == optuna.study.StudyDirection.MINIMIZE
 
         self._study = study
         self._problem = problem
@@ -138,7 +138,7 @@ class OptunaSolver(solver.Solver):
             message = "Unevaluable trial#{}: step={}".format(trial.number, current_step)
             _optuna_logger.info(message)
             self._study._storage.set_trial_state(
-                trial._trial._trial_id, optuna.structs.TrialState.PRUNED
+                trial._trial._trial_id, optuna.trial.TrialState.PRUNED
             )
             return
 
@@ -146,7 +146,7 @@ class OptunaSolver(solver.Solver):
         if self._problem.last_step == current_step:
             trial._report_complete_values(values)
             self._study._storage.set_trial_state(
-                trial._trial._trial_id, optuna.structs.TrialState.COMPLETE
+                trial._trial._trial_id, optuna.trial.TrialState.COMPLETE
             )
             self._study._study._log_completed_trial(trial._trial, 0.0)
         else:
@@ -161,7 +161,7 @@ class OptunaSolver(solver.Solver):
             #     )
             #     _optuna_logger.info(message)
             #     self._study._storage.set_trial_state(
-            #         trial._trial_id, optuna.structs.TrialState.PRUNED
+            #         trial._trial_id, optuna.trial.TrialState.PRUNED
             #     )
             #     self._pruned.put((kurobako_trial_id, trial))
             # else:

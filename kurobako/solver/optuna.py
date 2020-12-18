@@ -39,6 +39,7 @@ class OptunaSolverFactory(solver.SolverFactory):
                 solver.Capability.CATEGORICAL,
                 solver.Capability.CONDITIONAL,
                 solver.Capability.CONCURRENT,
+                solver.Capability.MULTI_OBJECTIVE,
             },
         )
 
@@ -138,17 +139,23 @@ class OptunaSolver(solver.Solver):
             self._study._storage.set_trial_state(trial._trial_id, optuna.trial.TrialState.PRUNED)
             return
 
-        value = values[0]
-
-        if self._study.direction == optuna.study.StudyDirection.MAXIMIZE:
-            value = -value
+        assert len(values) == len(self._study.directions)
+        for i in range(len(values)):
+            if self._study.directions[i] == optuna.study.StudyDirection.MAXIMIZE:
+                values[i] = -values[i]
 
         assert current_step <= self._problem.last_step
         if self._problem.last_step == current_step:
-            self._study._storage.set_trial_value(trial._trial_id, value)
+            self._study._storage.set_trial_values(trial._trial_id, values)
             self._study._storage.set_trial_state(trial._trial_id, optuna.trial.TrialState.COMPLETE)
-            self._study._log_completed_trial(trial, value)
+            self._study._log_completed_trial(trial, values)
         else:
+            if len(values) > 1:
+                raise NotImplementedError(
+                    "Pruning is not yet supported for optimization with more than one objective."
+                )
+
+            value = values[0]
             trial.report(value, current_step)
             if trial.should_prune():
                 message = "Pruned trial#{}: step={}, value={}".format(

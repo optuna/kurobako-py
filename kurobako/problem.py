@@ -190,12 +190,14 @@ class ProblemSpec(object):
         values: List[Var],
         attrs: Dict[str, str] = {},
         steps: Union[int, List[int]] = 1,
+        reference_point: Optional[List[float]] = None,
     ):
         self.name = name
         self.attrs = copy.deepcopy(attrs)
         self.params = params
         self.values = values
         self.steps = steps
+        self.reference_point = reference_point
 
     @property
     def last_step(self) -> int:
@@ -214,6 +216,7 @@ class ProblemSpec(object):
             params=[Var.from_dict(v) for v in d["params_domain"]],
             values=[Var.from_dict(v) for v in d["values_domain"]],
             steps=d["steps"],
+            reference_point=d["reference_point"],
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -225,6 +228,7 @@ class ProblemSpec(object):
             "params_domain": [v.to_dict() for v in self.params],
             "values_domain": [v.to_dict() for v in self.values],
             "steps": self.steps,
+            "reference_point": self.reference_point,
         }
 
 

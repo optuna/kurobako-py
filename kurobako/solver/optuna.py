@@ -15,10 +15,14 @@ _optuna_logger = optuna.logging.get_logger(__name__)
 
 class OptunaSolverFactory(solver.SolverFactory):
     def __init__(
-        self, create_study: Callable[[int], optuna.Study], use_discrete_uniform: bool = False
+        self,
+        create_study: Callable[[int], optuna.Study],
+        use_discrete_uniform: bool = False,
+        warm_starting_trials: int = 0,
     ):
         self._create_study = create_study
         self._use_discrete_uniform = use_discrete_uniform
+        self._warm_starting_trials = warm_starting_trials
 
     def specification(self) -> solver.SolverSpec:
         return solver.SolverSpec(
@@ -45,21 +49,36 @@ class OptunaSolverFactory(solver.SolverFactory):
 
     def create_solver(self, seed: int, problem: problem.ProblemSpec) -> solver.Solver:
         study = self._create_study(seed)
-        return OptunaSolver(study, problem, use_discrete_uniform=self._use_discrete_uniform)
+        return OptunaSolver(
+            study,
+            problem,
+            use_discrete_uniform=self._use_discrete_uniform,
+            warm_starting_trials=self._warm_starting_trials,
+        )
 
 
 class OptunaSolver(solver.Solver):
     def __init__(
-        self, study: optuna.Study, problem: problem.ProblemSpec, use_discrete_uniform: bool = False
+        self,
+        study: optuna.Study,
+        problem: problem.ProblemSpec,
+        use_discrete_uniform: bool = False,
+        warm_starting_trials: int = 0,
     ):
         self._study = study
         self._problem = problem
         self._use_discrete_uniform = use_discrete_uniform
+        self._warm_starting_trials = warm_starting_trials
         self._waitings = queue.Queue()  # type: queue.Queue[Tuple[int, optuna.Trial]]
         self._pruned = queue.Queue()  # type: queue.Queue[Tuple[int, optuna.Trial]]
         self._runnings = {}  # type: Dict[int, optuna.Trial]
 
     def _next_step(self, current_step: int) -> int:
+        if self._warm_starting_trials > 0:
+            assert current_step == 0
+            self._warm_starting_trials -= 1
+            return 0
+
         pruner = self._study.pruner
         if isinstance(pruner, optuna.pruners.NopPruner):
             return self._problem.last_step
@@ -157,7 +176,9 @@ class OptunaSolver(solver.Solver):
 
             value = values[0]
             trial.report(value, current_step)
-            if trial.should_prune():
+
+            # Note that `current_step == 0` means the trail was evaluated during a warm starting phase.
+            if current_step == 0 or trial.should_prune():
                 message = "Pruned trial#{}: step={}, value={}".format(
                     trial.number, current_step, value
                 )

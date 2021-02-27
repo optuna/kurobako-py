@@ -155,6 +155,9 @@ class OptunaSolver(solver.Solver):
         if len(values) == 0:
             message = "Unevaluable trial#{}: step={}".format(trial.number, current_step)
             _optuna_logger.info(message)
+            self._study.sampler.after_trial(
+                self._study, trial, optuna.trial.TrialState.PRUNED, values
+            )
             self._study._storage.set_trial_state(trial._trial_id, optuna.trial.TrialState.PRUNED)
             return
 
@@ -165,6 +168,9 @@ class OptunaSolver(solver.Solver):
 
         assert current_step <= self._problem.last_step
         if self._problem.last_step == current_step:
+            self._study.sampler.after_trial(
+                self._study, trial, optuna.trial.TrialState.COMPLETE, values
+            )
             self._study._storage.set_trial_values(trial._trial_id, values)
             self._study._storage.set_trial_state(trial._trial_id, optuna.trial.TrialState.COMPLETE)
             self._study._log_completed_trial(trial, values)
@@ -184,6 +190,9 @@ class OptunaSolver(solver.Solver):
                     trial.number, current_step, value
                 )
                 _optuna_logger.info(message)
+                self._study.sampler.after_trial(
+                    self._study, trial, optuna.trial.TrialState.PRUNED, values
+                )
                 self._study._storage.set_trial_state(
                     trial._trial_id, optuna.trial.TrialState.PRUNED
                 )

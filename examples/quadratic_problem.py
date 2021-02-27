@@ -1,4 +1,5 @@
 from typing import List
+from typing import Optional
 
 from kurobako import problem
 
@@ -18,13 +19,18 @@ class QuadraticProblemFactory(problem.ProblemFactory):
 
 
 class QuadraticProblem(problem.Problem):
-    def create_evaluator(self, params: List[float]) -> problem.Evaluator:
+    def create_evaluator(self, params: List[Optional[float]]) -> problem.Evaluator:
         return QuadraticEvaluator(params)
 
 
 class QuadraticEvaluator(problem.Evaluator):
-    def __init__(self, params: List[float]):
-        self._x, self._y = params
+    def __init__(self, params: List[Optional[float]]):
+        x, y = params
+        assert x is not None
+        assert y is not None
+
+        self._x = x
+        self._y = y
         self._current_step = 0
 
     def current_step(self) -> int:

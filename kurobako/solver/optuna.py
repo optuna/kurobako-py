@@ -177,7 +177,8 @@ class OptunaSolver(solver.Solver):
             value = values[0]
             trial.report(value, current_step)
 
-            # Note that `current_step == 0` means the trail was evaluated during a warm starting phase.
+            # Note that `current_step == 0` means the trail was
+            # evaluated during a warm starting phase.
             if current_step == 0 or trial.should_prune():
                 message = "Pruned trial#{}: step={}, value={}".format(
                     trial.number, current_step, value

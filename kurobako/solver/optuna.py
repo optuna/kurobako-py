@@ -40,6 +40,7 @@ class OptunaSolverFactory(solver.SolverFactory):
                 solver.Capability.UNIFORM_CONTINUOUS,
                 solver.Capability.LOG_UNIFORM_CONTINUOUS,
                 solver.Capability.UNIFORM_DISCRETE,
+                solver.Capability.LOG_UNIFORM_DISCRETE,
                 solver.Capability.CATEGORICAL,
                 solver.Capability.CONDITIONAL,
                 solver.Capability.CONCURRENT,
@@ -136,6 +137,8 @@ class OptunaSolver(solver.Solver):
         elif isinstance(v.range, problem.DiscreteRange):
             if self._use_discrete_uniform:
                 return trial.suggest_discrete_uniform(v.name, v.range.low, v.range.high - 1, q=1)
+            elif v.distribution == problem.Distribution.LOG_UNIFORM:
+                return trial.suggest_int(v.name, v.range.low, v.range.high - 1, log=True)
             else:
                 return trial.suggest_int(v.name, v.range.low, v.range.high - 1)
         elif isinstance(v.range, problem.CategoricalRange):

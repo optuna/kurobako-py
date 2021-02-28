@@ -216,7 +216,7 @@ class ProblemSpec(object):
             params=[Var.from_dict(v) for v in d["params_domain"]],
             values=[Var.from_dict(v) for v in d["values_domain"]],
             steps=d["steps"],
-            reference_point=d["reference_point"],
+            reference_point=d.get("reference_point"),
         )
 
     def to_dict(self) -> Dict[str, Any]:

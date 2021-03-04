@@ -17,16 +17,18 @@ class OptunaSolverFactory(solver.SolverFactory):
     def __init__(
         self,
         create_study: Callable[[int], optuna.Study],
+        name: str = "Optuna",
         use_discrete_uniform: bool = False,
         warm_starting_trials: int = 0,
     ):
         self._create_study = create_study
+        self._name = name
         self._use_discrete_uniform = use_discrete_uniform
         self._warm_starting_trials = warm_starting_trials
 
     def specification(self) -> solver.SolverSpec:
         return solver.SolverSpec(
-            name="Optuna",
+            name=self._name,
             attrs={
                 "version": "optuna={}, kurobako-py={}".format(
                     get_distribution("optuna").version, get_distribution("kurobako").version

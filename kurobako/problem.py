@@ -2,13 +2,20 @@ import abc
 import copy
 import enum
 import json
-from lupa import LuaRuntime
 import numpy as np
 from typing import Any
 from typing import Dict
 from typing import List
 from typing import Optional
 from typing import Union
+
+try:
+    from lupa import LuaRuntime
+
+    _lupa_available = True
+except ImportError:
+    _lupa_available = False
+
 
 Self = Any
 
@@ -149,6 +156,11 @@ class Var(object):
     def is_constraint_satisfied(self, vars: List[Self], vals: List[Optional[float]]) -> bool:
         if self.constraint is None:
             return True
+
+        if not _lupa_available:
+            raise RuntimeError(
+                "Please install `lupa` to handle problems containing conditional search space."
+            )
 
         lua = LuaRuntime()
         for var, val in zip(vars, vals):

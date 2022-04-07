@@ -1,3 +1,6 @@
+from typing import List
+from typing import Optional
+
 import numpy as np
 
 from kurobako import problem
@@ -18,7 +21,7 @@ class RandomSolver(solver.Solver):
         self._problem = problem
 
     def ask(self, idg: solver.TrialIdGenerator) -> solver.NextTrial:
-        params = []
+        params: List[Optional[float]] = []
         for p in self._problem.params:
             if p.distribution == problem.Distribution.UNIFORM:
                 params.append(self._rng.uniform(p.range.low, p.range.high))

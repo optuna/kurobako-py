@@ -1,6 +1,6 @@
 import optuna
-from pkg_resources import get_distribution
 from pkg_resources import DistributionNotFound
+from pkg_resources import get_distribution
 import queue
 from typing import Callable
 from typing import Dict  # NOQA
@@ -28,11 +28,11 @@ class OptunaSolverFactory(solver.SolverFactory):
         self._warm_starting_trials = warm_starting_trials
 
     def specification(self) -> solver.SolverSpec:
-        try: 
+        try:
             optuna_version = get_distribution("optuna").version
         except DistributionNotFound:
-            optuna_version = "unknown" 
-        
+            optuna_version = "unknown"
+
         try:
             kurobako_version = get_distribution("kurobako").version
         except DistributionNotFound:

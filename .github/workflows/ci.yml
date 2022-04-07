@@ -31,6 +31,7 @@ jobs:
       if: matrix.python-version == 3.7
       run: |
         pip install --progress-bar off $(ls dist/*.tar.gz)[checking]
+        pip install --progress-bar off types-setuptools
 
     - name: Run checks
       if: matrix.python-version == 3.7

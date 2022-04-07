@@ -41,9 +41,7 @@ class OptunaSolverFactory(solver.SolverFactory):
         return solver.SolverSpec(
             name=self._name,
             attrs={
-                "version": "optuna={}, kurobako-py={}".format(
-                    optuna_version, kurobako_version
-                ),
+                "version": "optuna={}, kurobako-py={}".format(optuna_version, kurobako_version),
                 "github": "https://github.com/optuna/optuna",
                 "paper": 'Akiba, Takuya, et al. "Optuna: A next-generation hyperparameter '
                 'optimization framework." Proceedings of the 25th ACM SIGKDD International '
@@ -101,7 +99,7 @@ class OptunaSolver(solver.Solver):
                 rung = 0
                 while True:
                     n = pruner._min_early_stopping_rate + rung
-                    step = pruner._min_resource * (pruner._reduction_factor ** n)
+                    step = pruner._min_resource * (pruner._reduction_factor**n)
                     if step > current_step:
                         return min(step, self._problem.last_step)
                     rung += 1

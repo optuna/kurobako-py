@@ -117,11 +117,11 @@ class OptunaSolver(solver.Solver):
             next_step = None
         elif self._waitings.empty():
             kurobako_trial_id = idg.generate()
-            trial = self._create_new_trial()
+            trial = self._study.ask()
             next_step = self._next_step(0)
         else:
             kurobako_trial_id, trial = self._waitings.get()
-            current_step = self._study._storage.get_trial(trial._trial_id).last_step
+            current_step = trial.last_step
             next_step = self._next_step(current_step)
 
         params = []  # type: List[Optional[float]]
@@ -171,10 +171,8 @@ class OptunaSolver(solver.Solver):
         if len(values) == 0:
             message = "Unevaluable trial#{}: step={}".format(trial.number, current_step)
             _optuna_logger.info(message)
-            self._study.sampler.after_trial(
-                self._study, trial, optuna.trial.TrialState.PRUNED, values
-            )
-            self._study._storage.set_trial_state(trial._trial_id, optuna.trial.TrialState.PRUNED)
+
+            self._study.tell(trial, state=optuna.trial.TrialState.PRUNED)
             return
 
         assert len(values) == len(self._study.directions)
@@ -184,11 +182,7 @@ class OptunaSolver(solver.Solver):
 
         assert current_step <= self._problem.last_step
         if self._problem.last_step == current_step:
-            self._study.sampler.after_trial(
-                self._study, trial, optuna.trial.TrialState.COMPLETE, values
-            )
-            self._study._storage.set_trial_values(trial._trial_id, values)
-            self._study._storage.set_trial_state(trial._trial_id, optuna.trial.TrialState.COMPLETE)
+            self._study.tell(trial, values=values)
             self._study._log_completed_trial(trial, values)
         else:
             if len(values) > 1:
@@ -206,12 +200,7 @@ class OptunaSolver(solver.Solver):
                     trial.number, current_step, value
                 )
                 _optuna_logger.info(message)
-                self._study.sampler.after_trial(
-                    self._study, trial, optuna.trial.TrialState.PRUNED, values
-                )
-                self._study._storage.set_trial_state(
-                    trial._trial_id, optuna.trial.TrialState.PRUNED
-                )
+                self._study.tell(trial, state=optuna.trial.TrialState.PRUNED)
                 self._pruned.put((kurobako_trial_id, trial))
             else:
                 self._waitings.put((kurobako_trial_id, trial))

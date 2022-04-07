@@ -204,12 +204,3 @@ class OptunaSolver(solver.Solver):
                 self._pruned.put((kurobako_trial_id, trial))
             else:
                 self._waitings.put((kurobako_trial_id, trial))
-
-    def _create_new_trial(self):
-        try:
-            trial_id = self._study._storage.create_new_trial(self._study._study_id)
-        except Exception:
-            # For compatibility.
-            trial_id = self._study._storage.create_new_trial(self._study.study_id)
-
-        return optuna.trial.Trial(self._study, trial_id)

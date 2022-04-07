@@ -1,5 +1,6 @@
 import optuna
 from pkg_resources import get_distribution
+from pkg_resources import DistributionNotFound
 import queue
 from typing import Callable
 from typing import Dict  # NOQA
@@ -27,11 +28,21 @@ class OptunaSolverFactory(solver.SolverFactory):
         self._warm_starting_trials = warm_starting_trials
 
     def specification(self) -> solver.SolverSpec:
+        try: 
+            optuna_version = get_distribution("optuna").version
+        except DistributionNotFound:
+            optuna_version = "unknown" 
+        
+        try:
+            kurobako_version = get_distribution("kurobako").version
+        except DistributionNotFound:
+            kurobako_version = "unknown"
+
         return solver.SolverSpec(
             name=self._name,
             attrs={
                 "version": "optuna={}, kurobako-py={}".format(
-                    get_distribution("optuna").version, get_distribution("kurobako").version
+                    optuna_version, kurobako_version
                 ),
                 "github": "https://github.com/optuna/optuna",
                 "paper": 'Akiba, Takuya, et al. "Optuna: A next-generation hyperparameter '

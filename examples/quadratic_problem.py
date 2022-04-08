@@ -38,7 +38,7 @@ class QuadraticEvaluator(problem.Evaluator):
 
     def evaluate(self, next_step: int) -> List[float]:
         self._current_step = 1
-        return [self._x ** 2 + self._y]
+        return [self._x**2 + self._y]
 
 
 if __name__ == "__main__":

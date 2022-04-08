@@ -1,6 +1,6 @@
 import optuna
-from pkg_resources import get_distribution
 from pkg_resources import DistributionNotFound
+from pkg_resources import get_distribution
 import queue
 from typing import Callable
 from typing import Dict  # NOQA
@@ -28,11 +28,11 @@ class OptunaSolverFactory(solver.SolverFactory):
         self._warm_starting_trials = warm_starting_trials
 
     def specification(self) -> solver.SolverSpec:
-        try: 
+        try:
             optuna_version = get_distribution("optuna").version
         except DistributionNotFound:
-            optuna_version = "unknown" 
-        
+            optuna_version = "unknown"
+
         try:
             kurobako_version = get_distribution("kurobako").version
         except DistributionNotFound:
@@ -41,9 +41,7 @@ class OptunaSolverFactory(solver.SolverFactory):
         return solver.SolverSpec(
             name=self._name,
             attrs={
-                "version": "optuna={}, kurobako-py={}".format(
-                    optuna_version, kurobako_version
-                ),
+                "version": "optuna={}, kurobako-py={}".format(optuna_version, kurobako_version),
                 "github": "https://github.com/optuna/optuna",
                 "paper": 'Akiba, Takuya, et al. "Optuna: A next-generation hyperparameter '
                 'optimization framework." Proceedings of the 25th ACM SIGKDD International '
@@ -101,7 +99,7 @@ class OptunaSolver(solver.Solver):
                 rung = 0
                 while True:
                     n = pruner._min_early_stopping_rate + rung
-                    step = pruner._min_resource * (pruner._reduction_factor ** n)
+                    step = pruner._min_resource * (pruner._reduction_factor**n)
                     if step > current_step:
                         return min(step, self._problem.last_step)
                     rung += 1

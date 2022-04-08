@@ -132,7 +132,11 @@ class EvaluatedTrial(object):
         self.current_step = current_step
 
     def to_dict(self) -> Dict[str, Any]:
-        return {"id": self.trial_id, "values": self.values, "current_step": self.current_step}
+        return {
+            "id": self.trial_id,
+            "values": self.values,
+            "current_step": self.current_step,
+        }
 
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> Any:
@@ -221,7 +225,11 @@ class SolverRunner(object):
         solver = self._solvers[solver_id]
         trial = solver.ask(idg)
 
-        message = {"type": "ASK_REPLY", "trial": trial.to_dict(), "next_trial_id": idg.next_id}
+        message = {
+            "type": "ASK_REPLY",
+            "trial": trial.to_dict(),
+            "next_trial_id": idg.next_id,
+        }
         self._send_message(message)
 
     def _handle_tell_call(self, message: Dict[str, Any]):

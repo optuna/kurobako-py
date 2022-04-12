@@ -20,6 +20,6 @@ setup(
     url="https://github.com/sile/kurobako-py",
     license="MIT",
     packages=find_packages(),
-    install_requires=["numpy", "packaging"],
+    install_requires=["numpy"],
     extras_require={"checking": ["hacking", "mypy", "black"]},
 )

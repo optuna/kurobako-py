@@ -1,5 +1,4 @@
 import optuna
-from optuna.trial import TrialState
 from optuna.version import __version__ as optuna_ver
 from packaging import version
 from pkg_resources import DistributionNotFound
@@ -183,15 +182,8 @@ class OptunaSolver(solver.Solver):
 
         assert current_step <= self._problem.last_step
         if self._problem.last_step == current_step:
-            self._study.tell(trial, values=values)
+            frozen_trial = self._study.tell(trial, values=values)
             if version.parse(optuna_ver) >= version.Version("3.0.0b0"):
-                frozen_trial = optuna.trial.create_trial(
-                    state=TrialState.COMPLETE,
-                    values=values,
-                    params=trial.params,
-                    distributions=trial.distributions,
-                )
-                frozen_trial._number = trial.number
                 self._study._log_completed_trial(frozen_trial)
             else:
                 self._study._log_completed_trial(trial, values)

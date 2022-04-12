@@ -171,7 +171,7 @@ class OptunaSolver(solver.Solver):
         if len(values) == 0:
             message = "Unevaluable trial#{}: step={}".format(trial.number, current_step)
             _optuna_logger.info(message)
-            frozen_trial = self._study.tell(trial, state=optuna.trial.TrialState.PRUNED)
+            self._study.tell(trial, state=optuna.trial.TrialState.PRUNED)
             return
 
         assert len(values) == len(self._study.directions)
@@ -199,7 +199,7 @@ class OptunaSolver(solver.Solver):
                     trial.number, current_step, value
                 )
                 _optuna_logger.info(message)
-                frozen_trial = self._study.tell(trial, state=optuna.trial.TrialState.PRUNED)
+                self._study.tell(trial, state=optuna.trial.TrialState.PRUNED)
                 self._pruned.put((kurobako_trial_id, trial))
             else:
                 self._waitings.put((kurobako_trial_id, trial))

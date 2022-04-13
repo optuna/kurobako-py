@@ -12,12 +12,9 @@ from typing import Tuple  # NOQA
 
 from kurobako import problem
 from kurobako import solver
-import logging
 
 _optuna_logger = optuna.logging.get_logger(__name__)
-_optuna_logger.setLevel(optuna.logging.INFO)
-console = logging.StreamHandler()
-_optuna_logger.addHandler(console)
+
 
 class OptunaSolverFactory(solver.SolverFactory):
     def __init__(
@@ -126,7 +123,7 @@ class OptunaSolver(solver.Solver):
             kurobako_trial_id, trial = self._waitings.get()
             # TODO: remove access to self._study._storage
             current_step = self._study._storage.get_trial(trial._trial_id).last_step 
-
+            
             next_step = self._next_step(current_step)
 
         params = []  # type: List[Optional[float]]
@@ -176,6 +173,7 @@ class OptunaSolver(solver.Solver):
         if len(values) == 0:
             message = "Unevaluable trial#{}: step={}".format(trial.number, current_step)
             _optuna_logger.info(message)
+
             self._study.tell(trial, state=optuna.trial.TrialState.PRUNED)
             return
 
@@ -186,19 +184,11 @@ class OptunaSolver(solver.Solver):
 
         assert current_step <= self._problem.last_step
         if self._problem.last_step == current_step:
-            self._study.tell(trial, values=values)
-            if len(values) == 1:
-                _optuna_logger.info(
-                    "Successful trial#{}: step={}, value={} (Best value: {})".format(
-                        trial.number, current_step, values[0], self._study.best_value
-                    )
-                )
+            frozen_trial = self._study.tell(trial, values=values)
+            if version.parse(optuna_ver) >= version.Version("3.0.0b0"):
+                self._study._log_completed_trial(frozen_trial)
             else:
-                _optuna_logger.info(
-                    "Successful trial#{}: step={}, value={}".format(
-                        trial.number, current_step, values
-                    )
-                )
+                self._study._log_completed_trial(trial, values)
         else:
             if len(values) > 1:
                 raise NotImplementedError(

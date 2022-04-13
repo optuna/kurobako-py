@@ -1,4 +1,6 @@
 import optuna
+from optuna.version import __version__ as optuna_ver
+from packaging import version
 from pkg_resources import DistributionNotFound
 from pkg_resources import get_distribution
 import queue
@@ -183,6 +185,10 @@ class OptunaSolver(solver.Solver):
         if self._problem.last_step == current_step:
             frozen_trial = self._study.tell(trial, values=values)
             self._study._log_completed_trial(frozen_trial)
+            if version.parse(optuna_ver) >= version.Version("3.0.0b0"):
+                self._study._log_completed_trial(frozen_trial)
+            else:
+                self._study._log_completed_trial(trial, values)
         else:
             if len(values) > 1:
                 raise NotImplementedError(

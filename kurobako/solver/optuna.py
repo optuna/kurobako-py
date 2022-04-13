@@ -121,9 +121,9 @@ class OptunaSolver(solver.Solver):
             next_step = self._next_step(0)
         else:
             kurobako_trial_id, trial = self._waitings.get()
-            # TODO: remove access to self._study._storage
-            current_step = self._study._storage.get_trial(trial._trial_id).last_step 
-            
+            # TODO(contramundum53): remove access to self._study._storage
+            current_step = self._study._storage.get_trial(trial._trial_id).last_step
+
             next_step = self._next_step(current_step)
 
         params = []  # type: List[Optional[float]]
